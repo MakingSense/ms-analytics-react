@@ -34,8 +34,8 @@ const useStyles = makeStyles(() =>
 
 export const Menu = ({ menuItems }: IMenuProps): JSX.Element => {
     const classes = useStyles();
-    let history = useHistory();
-    let { pathname } = useLocation();
+    const history = useHistory();
+    const { pathname } = useLocation();
 
     return (
         <Drawer

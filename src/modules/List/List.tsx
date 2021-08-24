@@ -1,10 +1,9 @@
 /* eslint-disable react/destructuring-assignment */
 import React from 'react';
 import { useQuery } from 'react-query';
-import { useParams } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 import { List as MuiList, ListItemText, Paper } from '@material-ui/core';
-import { useHistory } from 'react-router-dom';
 import { getNamesByType } from '../../services/pokemons';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -27,7 +26,7 @@ const useStyles = makeStyles((theme: Theme) =>
 export const List = (): JSX.Element => {
     const classes = useStyles();
     const { typeID } = useParams<{ typeID: string }>();
-    let history = useHistory();
+    const history = useHistory();
 
     const { isLoading, data, error } = useQuery(`pokemonList_by_type_${typeID}`, () =>
         getNamesByType(typeID),
