@@ -1,16 +1,25 @@
 /* eslint-disable react/destructuring-assignment */
 import React from 'react';
 import { useQuery } from 'react-query';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
-import { List as MuiList, ListItem, ListItemText } from '@material-ui/core';
+import { List as MuiList, ListItemText, Paper } from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
+import { getNamesByType } from '../../services/pokemons';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         root: {
-            flexGrow: 1,
             backgroundColor: theme.palette.background.default,
-            padding: theme.spacing(3),
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, 160px)',
+            gridAutoRows: '100px',
+            gridGap: '12px',
+        },
+        item: {
+            display: 'grid',
+            placeItems: 'center',
+            cursor: 'pointer',
         },
     }),
 );
@@ -18,24 +27,25 @@ const useStyles = makeStyles((theme: Theme) =>
 export const List = (): JSX.Element => {
     const classes = useStyles();
     const { typeID } = useParams<{ typeID: string }>();
+    let history = useHistory();
 
-    const { isLoading, data } = useQuery('pokemonListByType', () =>
-        fetch(`https://pokeapi.co/api/v2/type/${typeID}`).then((res) => res.json()),
+    const { isLoading, data, error } = useQuery(`pokemonList_by_type_${typeID}`, () =>
+        getNamesByType(typeID),
     );
 
     if (isLoading) return <span>Loading...</span>;
-
+    if (!data || error) return <span>error fetching pokemon type names...</span>;
     return (
-        <>
-            <MuiList className={classes.root}>
-                {data.pokemon.map((item: { pokemon: { name: string } }) => (
-                    <ListItem key={item.pokemon.name}>
-                        <Link to={`/${typeID}/${item.pokemon.name}`}>
-                            <ListItemText primary={item.pokemon.name} />
-                        </Link>
-                    </ListItem>
-                ))}
-            </MuiList>
-        </>
+        <MuiList className={classes.root}>
+            {data.map((item: { pokemon: { name: string } }) => (
+                <Paper
+                    onClick={() => history.push({ pathname: `/${typeID}/${item.pokemon.name}` })}
+                    key={item.pokemon.name}
+                    className={classes.item}
+                >
+                    <ListItemText primary={item.pokemon.name} />
+                </Paper>
+            ))}
+        </MuiList>
     );
 };

@@ -6,10 +6,16 @@ import { Detail } from '../Detail/Detail';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
-        content: {
+        list: {
             flexGrow: 1,
             backgroundColor: theme.palette.background.default,
             padding: theme.spacing(3),
+        },
+        details: {
+            display: 'grid',
+            placeItems: 'center',
+            width: '100%',
+            height: '100vh',
         },
     }),
 );
@@ -20,12 +26,14 @@ export const Content = (): JSX.Element => {
     return (
         <Switch>
             <Route exact path="/:typeID">
-                <div className={classes.content}>
+                <div className={classes.list}>
                     <List />
                 </div>
             </Route>
             <Route exact path="/:typeID/:name">
-                <Detail />
+                <div className={classes.details}>
+                    <Detail />
+                </div>
             </Route>
         </Switch>
     );
