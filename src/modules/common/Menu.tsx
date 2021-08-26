@@ -1,16 +1,14 @@
 import React from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import { Link } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-// import firebase from 'firebase';
+import { TPokemonBasic } from '../../services/pokemons';
 
 export interface IMenuProps {
-    menuItems: {
-        name: string;
-    }[];
+    menuItems: TPokemonBasic[];
 }
 
 const drawerWidth = 240;
@@ -36,14 +34,8 @@ const useStyles = makeStyles(() =>
 
 export const Menu = ({ menuItems }: IMenuProps): JSX.Element => {
     const classes = useStyles();
-
-    /*     const logEvent = (type: string) => {
-        const analytics = firebase.analytics();
-        analytics.logEvent('select_content', {
-            content_type: 'Pokemon Type',
-            content_id: type,
-        });
-    }; */
+    const history = useHistory();
+    const { pathname } = useLocation();
 
     return (
         <Drawer
@@ -55,11 +47,14 @@ export const Menu = ({ menuItems }: IMenuProps): JSX.Element => {
             anchor="left"
         >
             <List>
-                {menuItems.map((type: { name: string }) => (
-                    <ListItem button key={type.name}>
-                        <Link to={`/${type.name}`}>
-                            <ListItemText primary={type.name} />
-                        </Link>
+                {menuItems.map((type) => (
+                    <ListItem
+                        key={type.name}
+                        button
+                        selected={pathname.includes(type.name)}
+                        onClick={() => history.push({ pathname: `/${type.name}` })}
+                    >
+                        <ListItemText primary={type.name} />
                     </ListItem>
                 ))}
             </List>

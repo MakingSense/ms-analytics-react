@@ -22,6 +22,7 @@ import {
     ListItem,
     ListItemText,
 } from '@material-ui/core';
+import { getPokemon } from '../../services/pokemons';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -57,16 +58,15 @@ export const Detail = (): JSX.Element => {
     // eslint-disable-next-line prefer-const
     let { name } = useParams<{ name: string }>();
 
-    const { isLoading, data } = useQuery('pokemonDetail', () =>
-        fetch(`https://pokeapi.co/api/v2/pokemon/${name}`).then((res) => res.json()),
-    );
+    const { isLoading, data, error } = useQuery(`pokemon_detail_${name}`, () => getPokemon(name));
 
     if (isLoading) return <span>Loading...</span>;
+    if (!data || error) return <span>error fetching pokemon...</span>;
 
     const TypeList = () => {
         return (
             <span>
-                {data.types.map((type: { type: { name: string } }) => (
+                {data.types.map((type) => (
                     <span key={type.type.name}>{type.type.name}</span>
                 ))}
                 ;
@@ -126,7 +126,7 @@ export const Detail = (): JSX.Element => {
                 <Collapse in={expanded} timeout="auto" unmountOnExit>
                     <CardContent>
                         <List>
-                            {data.moves.map((move: { move: { name: string } }) => (
+                            {data.moves.map((move) => (
                                 <ListItem key={move.move.name}>
                                     <ListItemText primary={move.move.name} />
                                 </ListItem>
