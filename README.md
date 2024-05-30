@@ -2,6 +2,17 @@
 
 Before 'npm i' run 'npm config set legacy-peer-deps true'
 
+For GTM implementation I used this library
+https://www.npmjs.com/package/react-gtm-module
+
+this 2 lines are throwing errors
+
+const app = document.getElementById('app')
+ReactDOM.render(<Router routes={routes} />, app)
+
+I removed, and it seems is working fine, but we need to review it.
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
