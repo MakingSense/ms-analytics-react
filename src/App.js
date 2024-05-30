@@ -8,7 +8,16 @@ import Search from "./components/Pages/Search/Search";
 import Series from "./components/Pages/Series/Series";
 import Movies from "./components/Pages/Movies/Movies";
 
+import TagManager from 'react-gtm-module'
+
+
+
 function App() {
+  const tagManagerArgs = {
+    gtmId: 'GTM-TJBP2G8Q'
+  }
+  TagManager.initialize(tagManagerArgs)
+  
   return (
     <Router>
       <Header/>
@@ -21,9 +30,12 @@ function App() {
             <Route path="/search" component={Search} />
           </Switch>
         </Container>
+        
       </div>
       <SimpleBottomNavigation/>
     </Router>
   );
+
+
 }
 export default App;
