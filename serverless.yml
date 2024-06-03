@@ -1,0 +1,153 @@
+service: makingsense-analytics-front
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  stackName: ${self:custom.resources.prefix}-Front-End
+  deploymentMethod: direct
+  deploymentBucket:
+    serverSideEncryption: AES256
+    blockPublicAccess: true
+    name: serverless-ms-analytics-${self:custom.stage}-${self:provider.region}
+
+custom:
+  stage: ${opt:stage, 'develop'}
+  resources:
+    prefix: makingsense-analytics-${self:custom.stage}
+  s3Sync:
+    - bucketName: 'serverless-ms-analytics-front-${self:custom.stage}'
+      localDir: build
+      defaultContentType: text/html
+  cloudfrontInvalidate:
+    - distributionIdKey: "CDNDistributionId"
+      items:
+        - "/*"
+
+plugins:
+  - serverless-s3-sync
+  - serverless-cloudfront-invalidate
+
+resources:
+  Resources:
+    OriginAccessIdentity:
+      Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+      Properties:
+        CloudFrontOriginAccessIdentityConfig:
+          Comment: 'Access S3 bucket content only through CloudFront'
+
+    CloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Comment: 'MS-Analytics Front ${self:custom.stage}'
+          DefaultCacheBehavior:
+            AllowedMethods:
+              - HEAD
+              - GET
+              - OPTIONS
+            TargetOriginId: frontS3
+            Compress: true
+            DefaultTTL: 3600
+            MaxTTL: 43200
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            ViewerProtocolPolicy: redirect-to-https
+          Enabled: true
+          DefaultRootObject: index.html
+          HttpVersion: 'http2and3'
+          IPV6Enabled: false
+          ViewerCertificate:
+            CloudFrontDefaultCertificate: true
+          Origins:
+            - Id: frontS3
+              DomainName: 'serverless-ms-analytics-front-${self:custom.stage}.s3.amazonaws.com'
+              S3OriginConfig:
+                OriginAccessIdentity:
+                  !Join ['/', ['origin-access-identity/cloudfront', !Ref OriginAccessIdentity]]
+          CustomErrorResponses:
+            - ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+            - ErrorCode: 403
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+
+    WebsiteBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: { Ref: StaticSite }
+        PolicyDocument:
+          Statement:
+            - Sid: 'CloudFront'
+              Action:
+                - 's3:GetObject'
+              Effect: Allow
+              Resource: { 'Fn::Join': ['', ['arn:aws:s3:::', { Ref: StaticSite }, '/*']] }
+              Principal:
+                AWS:
+                  {
+                    'Fn::Join':
+                      [
+                        ' ',
+                        [
+                          'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity',
+                          { Ref: OriginAccessIdentity }
+                        ]
+                      ]
+                  }
+
+    StaticSite:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: Private
+        BucketName: 'serverless-ms-analytics-front-${self:custom.stage}'
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - HEAD
+              AllowedOrigins:
+                - '*'
+              ExposedHeaders:
+                - ETag
+              MaxAge: 3600
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+          RoutingRules:
+            - RedirectRule:
+                ReplaceKeyWith: '/index.html'
+              RoutingRuleCondition:
+                KeyPrefixEquals: '/'
+            - RedirectRule:
+                ReplaceKeyWith: '/index.html'
+              RoutingRuleCondition:
+                KeyPrefixEquals: '/logout'
+            - RedirectRule:
+                ReplaceKeyWith: '/index.html'
+              RoutingRuleCondition:
+                KeyPrefixEquals: '/not-found'
+
+  Outputs:
+    #URL De CloudFront
+    WebsiteURL:
+      Description: 'MS-Analytics CloudFront URL-${self:custom.stage}'
+      Value:
+        { 'Fn::Join': ['', ['https://', { 'Fn::GetAtt': [CloudFrontDistribution, DomainName] }]] }
+      Export:
+        Name: 'ms-analytics-${self:custom.stage}-front-URL'
+    CDNDistributionId:
+      Description: 'analytics CloudFront ID-${self:custom.stage}'
+      Value:
+        Ref: CloudFrontDistribution
+      Export:
+        Name: 'ms-analytics-${self:custom.stage}-front-ID'

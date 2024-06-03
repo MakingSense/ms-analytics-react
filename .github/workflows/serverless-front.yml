@@ -1,0 +1,60 @@
+name: Deploy branch Front End
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  build-test-frontend:
+    name: Build And Test Front-End
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: |
+            ./yarn.lock
+
+      - name: Install
+        run: yarn install
+
+      - name: Build Front
+        run: yarn build
+
+  deploy-front-serverless:
+    name: Deploy Frontend to Develop AWS
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: build-test-frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+          cache-dependency-path: |
+            ./yarn.lock
+
+      - run: yarn install
+
+      - name: Build Front
+        run: yarn build
+
+      - name: install SLS
+        run: npm install -g serverless@^3.38.0
+
+      - name: Configure SLS
+        run: sls config credentials --provider aws --key ${{ secrets.AWS_ACCESS_KEY_ID }} --secret ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Serverless Deploy
+        run: sls deploy --conceal --stage develop --region us-east-1 --config serverless.yml
