@@ -23,7 +23,7 @@ useEffect(() => {
 
 return (
 <div>
-<span className="pageTitle">Trending</span>
+<span className="pageTitle">Trending2</span>
 <div className="trending">
 {
 content && content.map((c)=><SingleContent key={c.id} id={c.id} poster={c.poster_path} title={c.title || c.name} data={c.first_air_date || c.release_date}
