@@ -113,8 +113,8 @@ export default function TransitionsModal({ children, media_type, id }) {
                   alt={content.name || content.title}
                   className="ContentModal__landscape"
                 />
-                <div className="ContentModal__about">
-                  <span className="ContentModal__title">
+                <div id="show_detail" className="ContentModal__about">
+                  <span id="show_title" className="ContentModal__title">
                     {content.name || content.title} (
                     {(
                       content.first_air_date ||
