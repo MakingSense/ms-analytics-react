@@ -137,6 +137,7 @@ export default function TransitionsModal({ children, media_type, id }) {
 
                   <Button
                     variant="contained"
+                    id="watch_video"
                     startIcon={<YouTubeIcon />}
                     color="secondary"
                     target="__blank"
