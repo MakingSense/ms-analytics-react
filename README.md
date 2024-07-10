@@ -6,6 +6,8 @@ URL: d3v374y2ma31o1.cloudfront.net
 
 Before 'npm i' run 'npm config set legacy-peer-deps true'
 
+# google Tag Manager
+
 For GTM implementation I used this library
 https://www.npmjs.com/package/react-gtm-module
 
@@ -15,6 +17,12 @@ const app = document.getElementById('app')
 ReactDOM.render(<Router routes={routes} />, app)
 
 I removed, and it seems is working fine, but we need to review it.
+
+# DataDog
+
+https://www.npmjs.com/package/@datadog/browser-rum?activeTab=readme
+
+and some App.js updates
 
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
