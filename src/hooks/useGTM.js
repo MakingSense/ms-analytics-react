@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TagManager from "react-gtm-module";
 
 const CONSENT_GRANTED = "granted";
@@ -15,10 +15,23 @@ const initializeGTM = () => {
     "gtm.uniqueEventId": 0,
   });
 
-  const tagManagerArgs = {
-    gtmId: "GTM-TJBP2G8Q",
-  };
-  TagManager.initialize(tagManagerArgs);
+  TagManager.initialize({ gtmId: "GTM-TJBP2G8Q" });
+};
+
+const updateDataLayer = (consent) => {
+  if (typeof window.dataLayer !== "undefined") {
+    window.dataLayer.push({
+      event: "cookieConsentUpdate",
+      cookieConsent: consent,
+      ad_user_data: consent,
+      ad_personalization: consent,
+      ad_storage: consent,
+      analytics_storage: consent,
+      personalization_storage: consent,
+      functionality_storage: consent,
+      security_storage: consent,
+    });
+  }
 };
 
 const useGTM = () => {
@@ -29,23 +42,11 @@ const useGTM = () => {
   useEffect(() => {
     if (consentGiven) {
       initializeGTM();
-      if (typeof window.dataLayer !== "undefined") {
-        window.dataLayer.push({
-          event: "cookieConsentUpdate",
-          cookieConsent: CONSENT_GRANTED,
-          ad_user_data: "enabled",
-          ad_personalization: "enabled",
-          ad_storage: CONSENT_GRANTED,
-          analytics_storage: CONSENT_GRANTED,
-          personalization_storage: CONSENT_GRANTED,
-          functionality_storage: CONSENT_GRANTED,
-          security_storage: CONSENT_GRANTED,
-        });
-      }
+      updateDataLayer(CONSENT_GRANTED);
     }
   }, [consentGiven]);
 
-  const handleConsent = (consent) => {
+  const handleConsent = useCallback((consent) => {
     const consentStatus = consent === CONSENT_GRANTED;
     setConsentGiven(consentStatus);
 
@@ -58,20 +59,9 @@ const useGTM = () => {
       if (typeof window.dataLayer === "undefined") {
         window.dataLayer = [];
       }
-
-      window.dataLayer.push({
-        event: "cookieConsentUpdate",
-        cookieConsent: CONSENT_GRANTED,
-        ad_user_data: "enabled",
-        ad_personalization: "enabled",
-        ad_storage: CONSENT_GRANTED,
-        analytics_storage: CONSENT_GRANTED,
-        personalization_storage: CONSENT_GRANTED,
-        functionality_storage: CONSENT_GRANTED,
-        security_storage: CONSENT_GRANTED,
-      });
+      updateDataLayer(CONSENT_GRANTED);
     }
-  };
+  }, []);
 
   return { consentGiven, handleConsent };
 };
